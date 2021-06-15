@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'myapp/style.css' %}">
+</head>
+<body>
+    <div class="div_base">
+        <h1>WELL COME</h1>
+    </div>
+
+    <div>
+        {% block index %} {% endblock %}
+    </div>
+
+    <div>
+        {% block save %} {% endblock %}
+    </div>
+</body>
+</html>
