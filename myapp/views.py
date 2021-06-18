@@ -13,7 +13,9 @@ class index(View):
         qs_id = request.POST.get('questions')
         obj_qs = Questions.objects.get(pk=qs_id)
         qs = obj_qs.question
-        ans = Answers(question=obj_qs,answer=request.POST.get('answer'))
+        img = request.FILES.get('image')
+        ans = Answers(question=obj_qs,answer=request.POST.get('answer'),image=img)
         ans.save()
-        content = {'qs_id':qs_id,'ans': ans.answer,'qs':qs}
+        content = {'qs_id':qs_id,'ans': ans.answer,'image':ans.image,'qs':qs}
         return render(request,'myapp/save.html',context=content)
+

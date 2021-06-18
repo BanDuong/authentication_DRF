@@ -14,6 +14,7 @@ class Questions(models.Model):
 class Answers(models.Model):
     question = models.ForeignKey(Questions,on_delete=models.CASCADE)
     answer = models.CharField(max_length=100)
+    image = models.ImageField(null=True,blank=True,upload_to="media/")
     created_at = timezone.now()
 
     def __str__(self):
