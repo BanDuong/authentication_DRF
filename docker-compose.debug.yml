@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  pythonproject:
+    image: pythonproject
+    build:
+      context: .
+      dockerfile: ./Dockerfile

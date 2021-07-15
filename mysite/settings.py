@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myapp',
-    'django_cleanup', # after deleting data from admin site, data saved in folders are also deleted  
+    'django_cleanup', # after deleting data from admin site, data saved in folders are also deleted
+    'rest_framework',
+    'translations',
 ]
 
 MIDDLEWARE = [
@@ -48,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -132,3 +135,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'myapp.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'common.renderers.EmberJSONRenderer',
+    ],
+    'EXCEPTION_HANDLER': 'common.errors.custom_exception_handler',
+    'DEFAULT_PAGINATION_CLASS': 'common.paging.CustomPageNumberPagination',
+    # 'PAGE_SIZE': 1, # có thể bỏ
+}
