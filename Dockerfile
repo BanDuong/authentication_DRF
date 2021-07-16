@@ -1,4 +1,14 @@
-FROM docker/whalesay:latest
-LABEL Name=pythonproject Version=0.0.1
-RUN apt-get -y update && apt-get install -y fortunes
-CMD ["sh", "-c", "/usr/games/fortune -a | cowsay"]
+FROM python:3.9.5
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /code
+
+COPY requirements.txt /code/
+
+RUN pip install -r requirements.txt
+
+COPY . /code/
+
+EXPOSE 80
+CMD exec uwsgi --http :80 --module config.wsgi

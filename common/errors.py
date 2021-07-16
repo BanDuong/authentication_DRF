@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.views import exception_handler
 
-from Shop.settings.default import DEBUG
+from mysite.settings import DEBUG
 
 
 def custom_exception_handler(exc, context):
@@ -124,3 +124,17 @@ class ErrUnauthorized(ErrAppEntity):
     status_code = status.HTTP_401_UNAUTHORIZED
     default_detail = 'invalid token'
     default_code = 'UNAUTHORIZED'
+
+#-----------------USER------------------------#
+
+class ErrLogin(ErrAppException):
+    """exception login"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = 'Login Failed '
+    default_code = 'ErrorLogin'
+
+class ErrViewUser(ErrAppException):
+    """exception display user infor"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = 'View User Failed '
+    default_code = 'ErrorViewUser'

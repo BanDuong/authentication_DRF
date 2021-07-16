@@ -1,8 +1,17 @@
-version: '3.4'
-
+version: "3.9"
 services:
-  pythonproject:
-    image: pythonproject
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6379:6379
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
