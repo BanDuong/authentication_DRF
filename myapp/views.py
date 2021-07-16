@@ -10,6 +10,7 @@ from rest_framework.exceptions import AuthenticationFailed,ValidationError
 import datetime
 import jwt
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 class index(View):
     def get(self,request):
@@ -32,6 +33,7 @@ class index(View):
 class GetPostUser(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    # permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
         try:
@@ -49,7 +51,9 @@ class GetPostUser(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            serializer = self.get_serializer(data=request.data)
+            data = request.data
+            # data['password'] = jwt.encode(data['password'], 'secret', algorithm='HS256')
+            serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
