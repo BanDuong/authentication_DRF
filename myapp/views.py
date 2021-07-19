@@ -10,7 +10,7 @@ from rest_framework.exceptions import AuthenticationFailed,ValidationError
 import datetime
 import jwt
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 
 class index(View):
     def get(self,request):
@@ -33,7 +33,7 @@ class index(View):
 class GetPostUser(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = (AllowAny,)
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -52,7 +52,6 @@ class GetPostUser(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         try:
             data = request.data
-            # data['password'] = jwt.encode(data['password'], 'secret', algorithm='HS256')
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
@@ -80,7 +79,10 @@ class RetrieveUser(generics.RetrieveUpdateDestroyAPIView):
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
+            serializer.save()
+            instance.set_password(serializer.data.get('password'))
+            instance.save()
+
 
             if getattr(instance, '_prefetched_objects_cache', None):
                 # If 'prefetch_related' has been applied to a queryset, we need to
@@ -103,10 +105,12 @@ class LoginView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            email = request.data['email']
+            username = request.data['username']
+            if '@' in username:
+                user = User.objects.filter(email=username).first()
+            else:
+                user = User.objects.filter(username=username).first()
             password = request.data['password']
-
-            user = User.objects.filter(email=email).first()
 
             if user is None:
                 raise AuthenticationFailed("User not found")
@@ -161,8 +165,6 @@ class LogoutView(APIView):
             "result" : "Log out successful"
         }
         return response
-
-
 
 
 

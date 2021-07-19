@@ -2,7 +2,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from datetime import datetime
 from django.utils import timezone
-from django.contrib.auth.models import AbstractUser,AbstractBaseUser,BaseUserManager,UserManager
+from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager, UserManager,Group,Permission,PermissionsMixin
 from django.utils.translation import gettext as _
 
 # Create your models here.
@@ -64,7 +64,7 @@ class ReUserManager(BaseUserManager):
 
         return user
 
-class User(AbstractBaseUser):
+class User(AbstractUser,PermissionsMixin):
     username_validator = UnicodeUsernameValidator()
 
     username = models.CharField(
@@ -97,10 +97,34 @@ class User(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
+    # groups = models.ManyToManyField(
+    #     Group,
+    #     verbose_name=_('groups'),
+    #     blank=True,
+    #     help_text=_(
+    #         'The groups this user belongs to. A user will get all permissions '
+    #         'granted to each of their groups.'
+    #     ),
+    #     related_name="user_set",
+    #     related_query_name="user",
+    # )
+    #
+    # user_permissions = models.ManyToManyField(
+    #     Permission,
+    #     verbose_name=_('user permissions'),
+    #     blank=True,
+    #     help_text=_('Specific permissions for this user.'),
+    #     related_name="user_set",
+    #     related_query_name="user",
+    # )
+
     objects = ReUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username',]
+    EMAIL_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
+
 
     class Meta:
         verbose_name = _('User')

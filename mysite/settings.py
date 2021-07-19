@@ -147,5 +147,7 @@ REST_FRAMEWORK = {
     # 'PAGE_SIZE': 1, # có thể bỏ
     'DEFAULT_PERMISSION_CLASSES': [
        'rest_framework.permissions.AllowAny',
+       # 'rest_framework.permissions.IsAuthenticatedOrReadOnly ',
+       # 'rest_framework.permissions.IsAdminUser',
     ],
 }
