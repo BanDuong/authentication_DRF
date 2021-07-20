@@ -112,6 +112,7 @@ class LoginView(APIView):
                 raise AuthenticationFailed("User not found")
             if not user.check_password(password):
                 raise AuthenticationFailed("InCorrect password")
+
             payload ={
                 "id" : user.id,
                 "username" : user.username,

@@ -27,7 +27,7 @@ class Answers(models.Model):
 
 #-----------------------------Custom_User---------------------------------------------------#
 
-class ReUserManager(BaseUserManager):
+class ReUserManager(UserManager):
 
     def core_create_user(self,email,username,password,**extra_fields):
         if not username:
@@ -46,25 +46,24 @@ class ReUserManager(BaseUserManager):
 
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_admin', False)
 
-        user = self.core_create_user(email=email, username=username, password=password, **extra_fields)
-        return user
+        return self.core_create_user(email=email, username=username, password=password, **extra_fields)
 
     def create_superuser(self, email, username = None ,password=None, **extra_fields):
 
         extra_fields.setdefault('is_staff', True) # user.is_staff = True
         extra_fields.setdefault('is_superuser', True) # user.is_superuser = True
+        extra_fields.setdefault('is_admin', True)
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
 
-        user = self.core_create_user(email=email, username=username, password=password, **extra_fields)
+        return self.core_create_user(email=email, username=username, password=password, **extra_fields)
 
-        return user
-
-class User(AbstractBaseUser):
+class User(AbstractUser):
     username_validator = UnicodeUsernameValidator()
 
     username = models.CharField(
@@ -96,6 +95,7 @@ class User(AbstractBaseUser):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    gender = models.CharField(max_length=35,blank=True,null=True)
 
     objects = ReUserManager()
 
@@ -110,9 +110,9 @@ class User(AbstractBaseUser):
     def __str__(self):
         return self.username + "-" + self.email
 
-    def has_perm(self,perm,object=None):
-        return self.is_admin
-
-    def has_module_perms(self, app_label):
-        return True
+    # def has_perm(self,perm,object=None):
+    #     return self.is_admin
+    #
+    # def has_module_perms(self, app_label):
+    #     return True
 
