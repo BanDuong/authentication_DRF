@@ -2,8 +2,10 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from datetime import datetime
 from django.utils import timezone
-from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager, UserManager,Group,Permission,PermissionsMixin
+from django.contrib.auth.models import AbstractUser, AbstractBaseUser, BaseUserManager, UserManager, Group, Permission, \
+    PermissionsMixin
 from django.utils.translation import gettext as _
+
 
 # Create your models here.
 
@@ -14,35 +16,35 @@ class Questions(models.Model):
     def __str__(self):
         return self.question
 
+
 class Answers(models.Model):
-    question = models.ForeignKey(Questions,on_delete=models.CASCADE)
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE)
     answer = models.CharField(max_length=100)
-    image = models.ImageField(null=True,blank=True,upload_to="media/")
+    image = models.ImageField(null=True, blank=True, upload_to="media/")
     created_at = timezone.now()
 
     def __str__(self):
         return self.answer
 
 
-
-#-----------------------------Custom_User---------------------------------------------------#
+# -----------------------------Custom_User---------------------------------------------------#
 
 class ReUserManager(UserManager):
 
-    def core_create_user(self,email,username,password,**extra_fields):
+    def core_create_user(self, email, username, password, **extra_fields):
         if not username:
             raise ValueError('The given username must be set')
         if not email:
             raise ValueError('The given email must be set')
         email = self.normalize_email(email)
 
-        user = self.model(email=email,username=username,**extra_fields)
+        user = self.model(email=email, username=username, **extra_fields)
         user.set_password(password)
         # user.password = make_password(password)  from django.contrib.auth.hashers import make_password
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, username = None ,password=None, **extra_fields):
+    def create_user(self, email, username=None, password=None, **extra_fields):
 
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
@@ -50,10 +52,10 @@ class ReUserManager(UserManager):
 
         return self.core_create_user(email=email, username=username, password=password, **extra_fields)
 
-    def create_superuser(self, email, username = None ,password=None, **extra_fields):
+    def create_superuser(self, email, username=None, password=None, **extra_fields):
 
-        extra_fields.setdefault('is_staff', True) # user.is_staff = True
-        extra_fields.setdefault('is_superuser', True) # user.is_superuser = True
+        extra_fields.setdefault('is_staff', True)  # user.is_staff = True
+        extra_fields.setdefault('is_superuser', True)  # user.is_superuser = True
         extra_fields.setdefault('is_admin', True)
 
         if extra_fields.get('is_staff') is not True:
@@ -63,11 +65,8 @@ class ReUserManager(UserManager):
 
         return self.core_create_user(email=email, username=username, password=password, **extra_fields)
 
-<<<<<<< HEAD
-class User(AbstractUser):
-=======
-class User(AbstractUser,PermissionsMixin):
->>>>>>> 3da835cec01ff2962b93225a2174bd37f1d7fe91
+
+class User(AbstractUser, PermissionsMixin):
     username_validator = UnicodeUsernameValidator()
 
     username = models.CharField(
@@ -82,7 +81,7 @@ class User(AbstractUser,PermissionsMixin):
     )
     first_name = models.CharField(_('first name'), max_length=150, blank=True)
     last_name = models.CharField(_('last name'), max_length=150, blank=True)
-    email = models.EmailField(_('email address'), blank=True,unique=True)
+    email = models.EmailField(_('email address'), blank=True, unique=True)
     is_staff = models.BooleanField(
         _('staff status'),
         default=False,
@@ -99,7 +98,7 @@ class User(AbstractUser,PermissionsMixin):
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    gender = models.CharField(max_length=35,blank=True,null=True)
+    gender = models.CharField(max_length=35, blank=True, null=True)
 
     # groups = models.ManyToManyField(
     #     Group,
@@ -128,8 +127,6 @@ class User(AbstractUser,PermissionsMixin):
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
-
-
     class Meta:
         verbose_name = _('User')
         verbose_name_plural = _('User')
@@ -143,4 +140,3 @@ class User(AbstractUser,PermissionsMixin):
     #
     # def has_module_perms(self, app_label):
     #     return True
-
