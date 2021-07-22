@@ -24,7 +24,7 @@ def generate_fresh_token(user):
         "email": user.email,
         "is_admin": user.is_admin,
         "is_superuser": user.is_superuser,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=7, minutes=5),
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(days=7),
         "iat": datetime.datetime.utcnow(),
     }
     refresh_token = jwt.encode(fresh_payload, settings.REFRESH_KEY, algorithm='HS256')

@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from .models import User
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth import authenticate
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ["id", "username", "email", "password", "is_admin", "is_superuser", ]
@@ -19,20 +21,10 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    # def update(self,instance,validated_data):
     #
-    #     instance.set_password(validated_data['password'])
-    #     instance.first_name = validated_data['first_name']
-    #     instance.last_name = validated_data['last_name']
-    #     instance.email = validated_data['email']
-    #     instance.username = validated_data['username']
-    #     instance.is_staff = validated_data['is_staff']
-    #     instance.is_active = validated_data['is_active']
-    #     instance.is_admin = validated_data['is_admin']
-    #     instance.is_superuser = validated_data['is_superuser']
-    #     instance.save()
-    #
-    #     return instance
+    # def validate(self, attrs):
+    #     email = attrs.get('email',None)
+    #     return super().validate(attrs)
 
     def validate_username(self, username):
         try:
@@ -52,3 +44,41 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+
+class LoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "password", "is_admin", "is_superuser", ]
+        extra_kwargs = {
+            'password': {"write_only": True}
+        }
+
+    def validate(self, attrs):
+        email = attrs.get('email', None)
+        password = attrs.get('password', None)
+        username = attrs.get('username', None)
+
+        if email is None:
+            raise ValidationError(detail="An email address is required to log in", code="EmailLoginError")
+
+        if password is None:
+            raise ValidationError(detail="A password address is required to log in", code="PasswordLoginError")
+
+        user = authenticate(username=(email or username), password=password)
+
+        if user is None:
+            raise ValidationError(detail="A user with this email and password was not found",
+                                  code="AuthenticateLoginError")
+
+        if not user.is_active:
+            raise ValidationError(detail="This user has been deactivated", code="ActivateAccountError")
+
+        return {
+            'id': user.id,
+            'email': user.email,
+            'username': user.username,
+            'password': user.password,
+            'is_admin': user.is_admin,
+            'is_superuser': user.is_superuser
+        }

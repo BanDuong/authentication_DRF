@@ -5,13 +5,15 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.errors import *
-from .serializers import UserSerializer
+from .serializers import UserSerializer, LoginSerializer
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
 import datetime
 import jwt
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
-from .token import generate_access_token,generate_fresh_token
+from .token import generate_access_token, generate_fresh_token
+from django.conf import settings
+from .backends import JWTAuthentication
 
 
 class index(View):
@@ -36,8 +38,7 @@ class index(View):
 class GetPostUser(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         try:
@@ -68,6 +69,7 @@ class GetPostUser(generics.ListCreateAPIView):
 class RetrieveUser(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -109,13 +111,12 @@ class RetrieveUser(generics.RetrieveUpdateDestroyAPIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
+    # authentication_classes = [JWTAuthentication]
+
     def post(self, request, *args, **kwargs):
         try:
-            username = request.data['username']
-            if '@' in username:
-                user = User.objects.filter(email=username).first()
-            else:
-                user = User.objects.filter(username=username).first()
+            username = request.data.get('username')
+            user = User.objects.get(email=username)
             password = request.data['password']
 
             if user is None:
@@ -129,7 +130,8 @@ class LoginView(APIView):
             response = Response()
             response.set_cookie(key='refresh_token', value=refresh_token, httponly=True)
 
-            serializer = UserSerializer(user)
+            serializer = UserSerializer(instance=user)
+
             response.data = {
                 "access_token": access_token,
                 "refresh_token": refresh_token,
@@ -141,32 +143,50 @@ class LoginView(APIView):
             raise ErrLogin(entity="User", err=e)
 
     def get(self, request, *args, **kwargs):
-        try:
-            token = request.COOKIES.get('refresh_token')
-
-            if not token:
-                raise AuthenticationFailed("Unauthenticated!")
-                # return redirect('/api/v1/login/')
-
-            try:
-                payload = jwt.decode(token, key="secret", algorithms=["HS256"])
-            except jwt.ExpiredSignatureError:
-                raise AuthenticationFailed("Unauthenticated")
-
-            user = User.objects.filter(id=payload['id']).first()
+        user = request.user
+        if user.id is not None:
             serializer = UserSerializer(user)
+            return Response(data={
+                'user': serializer.data
+            })
+        else:
+            raise ValidationError("Time out Login", code="TimeOutLogin")
 
-            return Response(serializer.data)
 
-        except Exception as e:
-            raise ErrLogin(entity="User", err=e)
+class ResetAccessToken(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get('refresh_token')
+
+        if refresh_token is None:
+            raise AuthenticationFailed("Authentication credentials were not provided")
+        try:
+            payload = jwt.decode(refresh_token, key=settings.REFRESH_KEY, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("expired refresh token, please login again")
+
+        user = User.objects.get(id=payload.get('id'))
+
+        if user is None:
+            raise AuthenticationFailed('User not found')
+
+        if not user.is_active:
+            raise AuthenticationFailed('user is inactive')
+
+        new_access_token = generate_access_token(user)
+
+        return Response(data={
+            'new_access_token': new_access_token
+        })
 
 
 class LogoutView(APIView):
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         response = Response()
-        response.delete_cookie(key="token")
+        response.delete_cookie(key="refresh_token")
         response.data = {
             "result": "Log out successful"
         }
