@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'myapp',
     'django_cleanup',  # after deleting data from admin site, data saved in folders are also deleted
     'rest_framework',
+    'rest_framework.authtoken',
     'translations',
     'corsheaders',
     'djoser',
@@ -156,9 +157,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'common.paging.CustomPageNumberPagination',
     # 'PAGE_SIZE': 1, # có thể bỏ
     # 'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.IsAuthenticated',
-        # 'rest_framework.permissions.IsAuthenticatedOrReadOnly ',
-        # 'rest_framework.permissions.IsAdminUser',
+    # 'rest_framework.permissions.IsAuthenticated',
+    # 'rest_framework.permissions.IsAuthenticatedOrReadOnly ',
+    # 'rest_framework.permissions.IsAdminUser',
     # ],
 }
 
@@ -214,3 +215,16 @@ CORS_ALLOW_CREDENTIALS = True  # to accept cookies via ajax request
 CORS_ORIGIN_WHITELIST = [
     'httlp://localhost:8000',  # the domain for front-end app(you can add more than 1)
 ]
+
+CACHE_TTL = 60 * 60 * 25
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'KEY_PREFIX': 'example',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+        },
+    }
+}
