@@ -212,19 +212,26 @@ EMAIL_USE_TLS = True
 
 CORS_ALLOW_CREDENTIALS = True  # to accept cookies via ajax request
 
-CORS_ORIGIN_WHITELIST = [
-    'httlp://localhost:8000',  # the domain for front-end app(you can add more than 1)
-]
+# CORS_ORIGIN_WHITELIST = [
+#     'httlp://localhost:8000',  # the domain for front-end app(you can add more than 1)
+# ]
+#
+# CACHE_TTL = 60 * 15  # Measuring: seconds (s)
+#
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+#         },
+#         'KEY_PREFIX': 'example',
+#     }
+# }
 
-CACHE_TTL = 60 * 60 * 25
+# import redis
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
-        'KEY_PREFIX': 'example',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient'
-        },
-    }
-}
+# REDIS_DEFAULT_CONNECTION_POOL = redis.ConnectionPool.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/'))
+
+
+

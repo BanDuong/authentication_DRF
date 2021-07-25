@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render, redirect
 from django.views import View
 from .models import Questions, Answers, User
@@ -17,8 +19,10 @@ from .backends import JWTAuthentication
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
+import redis
 
-CACHE_TTL = getattr(settings,"CACHE_TTL",DEFAULT_TIMEOUT)
+CACHE_TTL = getattr(settings, "CACHE_TTL", DEFAULT_TIMEOUT)
+
 
 class index(View):
     def get(self, request):
@@ -114,6 +118,7 @@ class RetrieveUser(generics.RetrieveUpdateDestroyAPIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    rd = redis.Redis(host="redis")
 
     # authentication_classes = [JWTAuthentication]
 
@@ -134,6 +139,11 @@ class LoginView(APIView):
             response = Response()
             response.set_cookie(key='refresh_token', value=refresh_token, httponly=True)
 
+            if self.rd.get("refresh_token"):
+                self.rd.delete("refresh_token")
+            self.rd.set("refresh_token", refresh_token)
+
+            # cache.set("refresh_token", json.dumps(refresh_token))
             serializer = UserSerializer(instance=user)
 
             response.data = {
@@ -147,14 +157,24 @@ class LoginView(APIView):
             raise ErrLogin(entity="User", err=e)
 
     def get(self, request, *args, **kwargs):
-        user = request.user
-        if user.id is not None:
+        # user = request.user
+        # if user.id is not None:
+        #     serializer = UserSerializer(user)
+        #     return Response(data={
+        #         'user': serializer.data
+        #     })
+        # else:
+        #     raise ValidationError("Time out Login", code="TimeOutLogin")
+
+        coockie_refresh_token = request.COOKIES.get('refresh_token').encode('utf-8')
+        redis_refresh_token = self.rd.get("refresh_token")
+        if coockie_refresh_token == redis_refresh_token:
+            payload = jwt.decode(redis_refresh_token, key=settings.REFRESH_KEY, algorithms=["HS256"])
+            user = User.objects.get(id=payload.get('id'))
             serializer = UserSerializer(user)
-            return Response(data={
-                'user': serializer.data
-            })
+            return Response(data={"user": serializer.data})
         else:
-            raise ValidationError("Time out Login", code="TimeOutLogin")
+            raise ValidationError("Error Connection",code="ErrConnection")
 
 
 class ResetAccessToken(APIView):
