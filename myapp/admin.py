@@ -1,9 +1,12 @@
 from django.contrib import admin
-from .models import Questions,Answers,User
+from .models import *
 # Register your models here.
 
 admin.site.register(Questions)
 admin.site.register(Answers)
+
+admin.site.register(MakeAudioCaptcha)
+admin.site.register(MakeImageCaptcha)
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):

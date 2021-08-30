@@ -21,10 +21,15 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('myapp.urls_myapp')),
-    path('auth/', include('djoser.urls.authtoken')),
-    path('auth/', include('djoser.urls')),
-    path('auth/', include('djoser.urls.jwt')),
-    path('auth/', include('djoser.social.urls')),
+    # path('accounts/', include('allauth.urls')),
+    path('api/v1/auth/', include('djoser.urls.authtoken')),
+    path('api/v1/auth/', include('djoser.urls')),
+    path('api/v1/auth/', include('djoser.urls.jwt')),
+    path('api/v1/auth/', include('djoser.social.urls')),
+    path('api/v1/', include('myapp.djoser_urls')),
+    re_path(r'^auth/', include('rest_framework_social_oauth2.urls')),  # social
+    # path('accounts/',include('django.contrib.auth.urls')),      # automatic connect to url: 'registration/login.html'
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+import django.contrib.auth.urls

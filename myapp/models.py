@@ -27,6 +27,27 @@ class Answers(models.Model):
         return self.answer
 
 
+# -----------------------------CaptCha------------------------------------------------------#
+
+class MakeImageCaptcha(models.Model):
+    image_captcha = models.ImageField(null=True, blank=True, verbose_name='image_captcha',
+                                      upload_to='img_captcha')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.image_captcha.name
+
+
+class MakeAudioCaptcha(models.Model):
+    audio_captcha = models.FileField(null=True, blank=True, verbose_name='audio_captcha', upload_to='au_captcha')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.audio_captcha.name
+
+
 # -----------------------------Custom_User---------------------------------------------------#
 
 class ReUserManager(UserManager):

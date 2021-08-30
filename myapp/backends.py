@@ -1,26 +1,29 @@
+import binascii
+import base64
 from django.contrib.auth.backends import ModelBackend
 from .models import User
-# from common.errors import *
-# from rest_framework.exceptions import ValidationError
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.middleware.csrf import CsrfViewMiddleware
 from rest_framework import exceptions
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 import jwt
+from rest_framework.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 UserModel = get_user_model()  # C2: from django.conf import settings   User = settings.AUTH_USER_MODEL
+HTTP_HEADER_ENCODING = 'iso-8859-1'
 
 
 class CustomeBackend(ModelBackend):
 
-    def authenticate(self, request, email=None, password=None, **kwargs):
-        if email is None:
-            email = kwargs.get(UserModel.EMAIL_FIELD)
-        if email is None or password is None:
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        if username is None:
+            username = kwargs.get(UserModel.EMAIL_FIELD)
+        if username is None or password is None:
             raise exceptions.ValidationError(detail="check email or password again", code="ErrorEntity")
         try:
-            user = UserModel._default_manager.get_by_natural_key(email)  # xử lý ngôn ngữ tự nhiên với email
+            user = UserModel._default_manager.get_by_natural_key(username)  # xử lý ngôn ngữ tự nhiên với email
         except UserModel.DoesNotExist:
             UserModel().set_password(password)
         else:
@@ -41,17 +44,30 @@ class CSRFCheck(CsrfViewMiddleware):
         return reason
 
 
+def get_authorization_header(request):
+    """
+    Return request's 'Authorization:' header, as a bytestring.
+
+    Hide some test client ickyness where the header can be unicode.
+    """
+    auth = request.META.get('HTTP_AUTHORIZATION', b'')
+    if isinstance(auth, str):
+        # Work around django test client oddness
+        auth = auth.encode(HTTP_HEADER_ENCODING)
+    return auth
+
+
 class JWTAuthentication(BaseAuthentication):
     # authentication_header_prefix = 'Token'
 
     def authenticate(self, request):
-        authorization_header = request.headers.get('Authorization')
+        authorization_header = get_authorization_header(request).split()
 
         if not authorization_header:
             return None
         try:
             # header = 'Token xxxxxxxxxxxxxxxxxxxxxxxx'
-            access_token = authorization_header.split(' ')[1]
+            access_token = authorization_header[1]
             payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
 
         except jwt.ExpiredSignatureError:
@@ -66,7 +82,7 @@ class JWTAuthentication(BaseAuthentication):
         if not user.is_active:
             raise exceptions.AuthenticationFailed('user is inactive')
 
-        self.enforce_csrf(request)
+        # self.enforce_csrf(request)
         return (user, None)
 
     def enforce_csrf(self, request):

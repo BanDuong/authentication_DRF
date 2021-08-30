@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="username">User name:  </label>
+        <input type="text" name="username" style="font-size: 15px"><br><br>
+        <label for="password">Pass word:  </label>
+        <input type="password" name="password" style="font-size: 15px"><br><br>
+        <input id="img_capt" style="visibility: visible" type="image" src="{{ img_cc.image_captcha.url }}" height="50" width="250" name="img_captcha">
+        <!--<button onclick="convert_captcha()">audio captcha</button>-->
+        <br><br>
+        <label for="captcha">Captcha:</label>
+        <input type="text" name="captcha" style="font-size: 15px"><br><br>
+        <!--<audio id="au_capt" style="visibility: hidden" controls src="{{ audio_cc.audio_captcha.url }}" typeof="audio/wav"></audio><br>-->
+        <input type="submit" value="OKE Login" name="submit"><br><br>
+        <p id="oke"></p>
+        <button><a href="{% url 'social:begin' 'facebook' %}">Signin with Facebook</a></button>
+        <button><a href="{% url 'social:begin' 'google-oauth2' %}">Signin with Google</a></button>
+    </form>
+
+    <script>
+        function convert_captcha(){
+            document.getElementById('au_capt').style.visibility = 'visible';
+            document.getElementById('oke').innerHTML = "okiiiii";
+        }
+    </script>
+</body>
+</html>
+<!--
+    -------Note-------
+    'social': is the app_name, org_path: rest_framework_social_oauth2\urls.py
+    'begin': is the name of url, org_path: social_django\urls.py
+    'facebook'/'google-oauth2'/..vv: is the name, org_path: It's the path in DEFAULT_AUTHENTICATION_CLASSES of settings
+-->

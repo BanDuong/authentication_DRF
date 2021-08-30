@@ -26,7 +26,7 @@ REFRESH_KEY = 'fresh-token-key' + SECRET_KEY + '@123!'  # refresh token key
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -44,6 +44,17 @@ INSTALLED_APPS = [
     'translations',
     'corsheaders',
     'djoser',
+    'oauth2_provider',  # socail
+    'social_django',  # socail
+    'rest_framework_social_oauth2',  # socail
+    # 'sslserver',
+    # 'django.contrib.sites',     # allauth
+    # 'allauth',                  # allauth
+    # 'allauth.account',          # allauth
+    # 'allauth.socialaccount',    # allauth
+    # 'allauth.socialaccount.providers.facebook',
+    # 'allauth.socialaccount.providers.github',
+    # 'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +65,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # enable translate pages
+    'common.middlewares.QueryCountDebugMiddleware',     # custom
+    # 'common.middlewares.AddTokenHeader',      # custom insert access_token in header
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -62,7 +75,7 @@ ROOT_URLCONF = 'mysite.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,6 +83,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',  # socail
+                'social_django.context_processors.login_redirect',  # socail
             ],
         },
     },
@@ -138,20 +153,79 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'myapp.User'
 
+# SECURE_SSL_REDIRECT = True    # convert http -> https
+# don't run with localhost
+
+# --------------------------------------- FACEBOOK configuration--------------------------------------------#
+
+SOCIAL_AUTH_FACEBOOK_KEY = '848048912515965'
+SOCIAL_AUTH_FACEBOOK_SECRET = '03f780a929377b4b3f48c72baff5e971'
+
+# Define SOCIAL_AUTH_FACEBOOK_SCOPE to get extra permissions from Facebook.
+# Email is not sent by default, to get it, you must request the email permission.
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
+    'fields': 'id, name, email'
+}
+# SOCIAL_AUTH_RAISE_EXCEPTIONS = False
+
+# ------------------------------- Google configuration --------------------------------------#
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '787593839700-fsd8597ohum7gb0fodaq856eeinmm64c.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '-iCV36CpnRY5pGM8MVYoG7zA'
+
+# Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+]
+
+
+# ---------------------------------- All Auth -------------------------------------------------#
+
+# SITE_ID = 2
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = 'email'
+# LOGIN_REDIRECT_URL = '/'
+# SOCIALACCOUNT_PROVIDERS = {
+#     'google': {
+#         'SCOPE': [
+#             'profile',
+#             'email',
+#         ],
+#         'AUTH_PARAMS': {
+#             'access_type': 'online',
+#         }
+#     }
+# }
+# -------------------------------- BackEnds ------------------------------------------------------#
+
 AUTHENTICATION_BACKENDS = [
-    # 'django.contrib.auth.backends.ModelBackend',  # default
-    'myapp.backends.CustomeBackend',
+    'django.contrib.auth.backends.ModelBackend',  # default
+    # 'myapp.backends.CustomeBackend',  # custome
+    # 'allauth.account.auth_backends.AuthenticationBackend',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',  # social default
+
+    'social_core.backends.facebook.FacebookAppOAuth2',  # facebook
+    'social_core.backends.facebook.FacebookOAuth2',  # facebook
+
+    # 'social_core.backends.github.GithubOAuth2',  # github
+
+    'social_core.backends.google.GoogleOAuth2',  # google
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'myapp.backends.JWTAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # social
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',  # social
+        # 'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'common.renderers.EmberJSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.TemplateHTMLRenderer',
+        'rest_framework_csv.renderers.CSVRenderer',
     ],
     'EXCEPTION_HANDLER': 'common.errors.custom_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'common.paging.CustomPageNumberPagination',
@@ -163,8 +237,12 @@ REST_FRAMEWORK = {
     # ],
 }
 
+from datetime import timedelta
+
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 DJOSER = {
@@ -216,22 +294,20 @@ CORS_ALLOW_CREDENTIALS = True  # to accept cookies via ajax request
 #     'httlp://localhost:8000',  # the domain for front-end app(you can add more than 1)
 # ]
 #
-# CACHE_TTL = 60 * 15  # Measuring: seconds (s)
-#
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': 'redis://127.0.0.1:6379/1',
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
-#         },
-#         'KEY_PREFIX': 'example',
-#     }
-# }
+CACHE_TTL = 60 * 60 * 24 * 7  # Measuring: seconds (s) = 7 days
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        # 'LOCATION': 'redis://127.0.0.1:6379/',
+        'LOCATION': 'redis://redis:6379/',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+        },
+        # 'KEY_PREFIX': 'example',
+    }
+}
 
 # import redis
 
 # REDIS_DEFAULT_CONNECTION_POOL = redis.ConnectionPool.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/'))
-
-
-
