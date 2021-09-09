@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>notice</title>
+</head>
+<body>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    <h1>wellllll</h1><br>
+    {% if data %}
+        {{ data.comments }}<br>
+    {% endif %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for="comments">Comment:</label><br>
+        <textarea name="comments" rows="4" cols="50"></textarea><br>
+        <input type="submit">
+    </form>
+</body>
+</html>

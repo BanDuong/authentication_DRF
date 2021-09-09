@@ -26,8 +26,30 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.core.cache import cache
 import redis
 from django.contrib.auth import authenticate
+from django.http import HttpResponseRedirect, JsonResponse
 
 CACHE_TTL = getattr(settings, "CACHE_TTL", DEFAULT_TIMEOUT)
+
+
+class AjaxHandlerView(View):
+    # serializer_class = UserSerializer
+    # queryset = User.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        # serializer = self.get_serializer(self.get_queryset(), many=True)
+        users = User.objects.all()
+        # return render(request, template_name="hello.html", context={'users': users})
+        return JsonResponse(data={"users": users}, status=200)
+
+
+class Comment(View):
+
+    def get(self, request, pk):
+        return render(request=request, template_name="test.html")
+
+    def post(self, request, pk):
+        data = request.POST
+        return render(request=request, template_name="test.html", context={'data': data})
 
 
 class Login(View):
@@ -40,11 +62,14 @@ class Login(View):
         return render(request, template_name="login.html", context={'img_cc': img_cc, 'audio_cc': audio_cc})
 
     def post(self, request):
-        data ='img_captcha/' + request.POST.get('captcha') + '.png'
+        data = 'img_captcha/' + request.POST.get('captcha') + '.png'
         if MakeImageCaptcha.objects.filter(image_captcha=data):
             return render(request, template_name="notice.html")
         else:
             return redirect('/users/login/')
+
+
+from unittest import TestCase
 
 
 class AfterLogin(View):

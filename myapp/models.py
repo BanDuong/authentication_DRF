@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 
 class Questions(models.Model):
     question = models.CharField(max_length=200)
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.question
@@ -30,7 +30,7 @@ class Answers(models.Model):
 # -----------------------------CaptCha------------------------------------------------------#
 
 class MakeImageCaptcha(models.Model):
-    image_captcha = models.ImageField(null=True, blank=True, verbose_name='image_captcha',
+    image_captcha = models.ImageField(null=True, blank=True, verbose_name='image captcha',
                                       upload_to='img_captcha')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
@@ -40,7 +40,8 @@ class MakeImageCaptcha(models.Model):
 
 
 class MakeAudioCaptcha(models.Model):
-    audio_captcha = models.FileField(null=True, blank=True, verbose_name='audio_captcha', upload_to='au_captcha')
+    audio_captcha = models.FileField(null=True, blank=True, verbose_name='audio captcha',
+                                     upload_to='au_captcha')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
