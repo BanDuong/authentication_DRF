@@ -203,15 +203,15 @@ class LoginView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             email = request.data.get('email')
-            user = User.objects.get(email=email)
+            # user = User.objects.get(email=email)
             password = request.data['password']
+            
+            # if user is None:
+            #     raise AuthenticationFailed("User not found")
+            # if not user.check_password(password):
+            #     raise AuthenticationFailed("InCorrect password")
 
-            if user is None:
-                raise AuthenticationFailed("User not found")
-            if not user.check_password(password):
-                raise AuthenticationFailed("InCorrect password")
-
-            # authenticate(email,password)
+            user = authenticate(email,password)
 
             access_token = generate_access_token(user)
             refresh_token = generate_fresh_token(user)

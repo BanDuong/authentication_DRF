@@ -8,6 +8,8 @@ from rest_framework import exceptions
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 import jwt
+from myapp.token import *
+from django.core.cache import cache
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -71,7 +73,13 @@ class JWTAuthentication(BaseAuthentication):
             payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
 
         except jwt.ExpiredSignatureError:
-            raise exceptions.AuthenticationFailed('access_token expired')
+            get_refresh_token = cache.get('refresh_token')
+            payload = jwt.decode(get_refresh_token, key=settings.REFRESH_KEY, algorithms=["HS256"])
+            user = User.objects.get(id=payload.get('id'))
+            access_token = generate_access_token(user)
+            request.COOKIES['access_token'] = access_token
+            return (user, None)
+            # raise exceptions.AuthenticationFailed('access_token expired')
         except IndexError:
             raise exceptions.AuthenticationFailed('Token prefix missing')
 

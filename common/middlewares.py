@@ -1,5 +1,5 @@
 from django.db import connection
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import APIException
 from django.conf import settings
 import jwt
 import redis
@@ -48,19 +48,19 @@ class AddTokenHeader(object):
     def __call__(self, request):
         try:
             access_token = request.COOKIES.get('access_token')
-            get_refresh_token = cache.get('refresh_token')
-            if access_token and get_refresh_token:
-                try:
-                    jwt.decode(access_token, key=settings.SECRET_KEY, algorithms=["HS256"])
-                except jwt.exceptions.ExpiredSignatureError:
-                    payload = jwt.decode(get_refresh_token, key=settings.REFRESH_KEY, algorithms=["HS256"])
-                    user = User.objects.get(id=payload.get('id'))
-                    access_token = generate_access_token(user)
-                    request.COOKIES['access_token'] = access_token
-                except Exception as e:
-                    raise ValidationError(e)
+            # get_refresh_token = cache.get('refresh_token')
+            if access_token: # and get_refresh_token:
+            #     try:
+            #         jwt.decode(access_token, key=settings.SECRET_KEY, algorithms=["HS256"])
+            #     except jwt.exceptions.ExpiredSignatureError:
+            #         payload = jwt.decode(get_refresh_token, key=settings.REFRESH_KEY, algorithms=["HS256"])
+            #         user = User.objects.get(id=payload.get('id'))
+            #         access_token = generate_access_token(user)
+            #         request.COOKIES['access_token'] = access_token
+            #     except Exception as e:
+            #         raise APIException(e)
                 request.META['HTTP_AUTHORIZATION'] = "Token" + ' ' + access_token
             response = self.get_response(request)
             return response
         except Exception as e:
-            raise ValidationError(e)
+            raise APIException(e)
